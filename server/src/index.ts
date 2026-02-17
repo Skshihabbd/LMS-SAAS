@@ -10,7 +10,7 @@ app.use(express.json());
 
 // Routes
 app.get('/', (_req: Request, res: Response) => {
-  res.json({ message: 'Welcome to LMS SaaS Server' });
+  res.json({ message: 'Welcome to LMS SaaS Server shihab' });
 });
 
 app.get('/health', (_req: Request, res: Response) => {
