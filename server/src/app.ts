@@ -18,7 +18,7 @@ app.use(express.json());
 app.get('/', async (req: Request, res: Response) => {
     res.status(201).json({
         success: true,
-        message: 'API is working',
+        message: 'API is workings',
     })
 });
 
