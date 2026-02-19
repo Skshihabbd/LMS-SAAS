@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import { envVars } from "./app/config/env";
 import { indexRoutes } from "./app/routes";
+import globalErrorHandler from "./app/errors/globalErrorHandler";
 
 const app: Application = express()
 
@@ -15,6 +16,9 @@ app.use(cors({
 app.use(express.json());
 
 app.use("/api/v1", indexRoutes);
+
+app.use(globalErrorHandler);
+
 
 // Basic route
 app.get('/', async (req: Request, res: Response) => {
