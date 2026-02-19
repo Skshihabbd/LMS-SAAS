@@ -1,7 +1,6 @@
 import bcrypt from "bcrypt";
 import { envVars } from "../config/env";
 import { connectDB, disconnectDB } from "../db/ConnectDb";
-import { USER_ROLE } from "../interfaces/Role";
 import { User } from "../modules/user/user.model";
 
 const seedAdmin = async () => {
@@ -31,7 +30,6 @@ const seedAdmin = async () => {
             name: "Admin",
             email: ADMIN_EMAIL,
             password: hashedPassword,
-            role: USER_ROLE.ADMIN,
         });
 
         console.log("🚀 Admin seeded successfully.");

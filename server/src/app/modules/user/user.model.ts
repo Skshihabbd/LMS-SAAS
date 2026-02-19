@@ -1,7 +1,6 @@
-import bcrypt from "bcrypt";
 import { Schema, model, Document, Model } from "mongoose";
 import { IUser } from "./user.interface";
-import { USER_ROLE } from "../../interfaces/Role";
+import { passwordHashPlugin } from "../../shared/passwordHash";
 
 // 1️⃣ Document interface
 export interface IUserDocument extends IUser, Document { }
@@ -15,23 +14,26 @@ const userSchema = new Schema<IUserDocument, UserModel>(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6, select: false },
-    role: { type: String, enum: Object.values(USER_ROLE), default: USER_ROLE.STUDENT, required: true, }
+    password: { type: String, required: true, minlength: 6, select: false }
   },
+
   { timestamps: true }
 );
 
-// 3️⃣ Password hash hook
-userSchema.pre<IUserDocument>("save", async function () {
-  // ✅ TypeScript now recognizes isModified because this extends Document
-  if (!this.isModified("password")) return;
 
-  this.password = await bcrypt.hash(this.password, 10);
+userSchema.set("toJSON", {
+  transform: function (doc, ret) {
+    delete ret.password;
+    return ret;
+  },
 });
+// 3️⃣ Password hash hook
+userSchema.plugin(passwordHashPlugin);
+
 
 // 4️⃣ Static method
 userSchema.statics.isUserExistByEmail = async function (email: string) {
-  return await this.findOne({ email }).select("+password");
+  return await this.findOne({ email });
 };
 
 export const User = model<IUserDocument, UserModel>("User", userSchema);
