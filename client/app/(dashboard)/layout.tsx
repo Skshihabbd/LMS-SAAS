@@ -59,7 +59,6 @@ function Sidebar({ collapsed, userRole, onClose, isMobile = false }: {
       >
         <Icon size={18} className="flex-shrink-0" />
         
-        {/* Label and Badge Container - smooth fade */}
         <div className={`flex items-center flex-1 transition-all duration-300 overflow-hidden ${isWide ? "opacity-100 max-w-full" : "opacity-0 max-w-0"}`}>
           <span className="flex-1 truncate ml-1">{item.label}</span>
           {item.badge && (
@@ -70,7 +69,6 @@ function Sidebar({ collapsed, userRole, onClose, isMobile = false }: {
           )}
         </div>
 
-        {/* Tooltip for Collapsed Mode */}
         {!isWide && (
           <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
             {item.label}
@@ -82,7 +80,6 @@ function Sidebar({ collapsed, userRole, onClose, isMobile = false }: {
 
   return (
     <aside className="flex flex-col h-full bg-white border-r border-zinc-200 overflow-hidden w-full">
-      {/* ── Logo ── */}
       <div className={`flex items-center h-16 border-b border-zinc-100 flex-shrink-0 px-4 transition-all duration-300
         ${isWide ? "gap-3 justify-between" : "justify-center"}`}>
         <div className="flex items-center gap-3 min-w-0">
@@ -99,7 +96,6 @@ function Sidebar({ collapsed, userRole, onClose, isMobile = false }: {
         )}
       </div>
 
-      {/* ── Navigation ── */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 flex flex-col gap-0.5">
         <p className={`text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-3 mb-1.5 transition-opacity duration-300 ${isWide ? "opacity-100" : "opacity-0"}`}>
           Main
@@ -109,7 +105,6 @@ function Sidebar({ collapsed, userRole, onClose, isMobile = false }: {
         {filteredAcct.map((item) => <NavLink key={item.href} item={item} />)}
       </nav>
 
-      {/* ── User Footer ── */}
       <div className="flex-shrink-0 border-t border-zinc-100 p-3">
         <div className={`flex items-center gap-3 rounded-xl p-2 hover:bg-zinc-50 cursor-pointer transition-all ${!isWide ? "justify-center" : ""}`}>
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">JD</div>
@@ -127,8 +122,21 @@ function Sidebar({ collapsed, userRole, onClose, isMobile = false }: {
 function Topbar({ collapsed, onOpenMobile, onToggleDesktop, userRole }: { 
   collapsed: boolean; onOpenMobile: () => void; onToggleDesktop: () => void; userRole: Role;
 }) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const pageTitle = NAV_ITEMS.find((n) => n.href === pathname)?.label ?? "Dashboard";
+
+  // Modal এর বাইরে ক্লিক করলে বন্ধ হবে
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setIsModalOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="h-16 bg-white border-b border-zinc-200 flex items-center px-4 gap-3 sticky top-0 z-20">
@@ -151,7 +159,43 @@ function Topbar({ collapsed, onOpenMobile, onToggleDesktop, userRole }: {
         <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border-2 border-white" />
       </button>
 
-      <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-xs font-bold cursor-pointer">JD</div>
+      {/* Profile Icon with Modal Trigger */}
+      <div className="relative" ref={modalRef}>
+        <div 
+          onClick={() => setIsModalOpen(!isModalOpen)}
+          className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:ring-4 hover:ring-red-50 transition-all shadow-sm active:scale-95"
+        >
+          JD
+        </div>
+
+        {/* --- Profile Modal --- */}
+        <div className={`absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-xl border border-zinc-100 overflow-hidden transition-all duration-300 origin-top-right z-50
+          ${isModalOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-2 pointer-events-none"}`}>
+          
+          <div className="p-4 bg-zinc-50 border-b border-zinc-100">
+            <p className="text-zinc-900 font-bold text-sm">John Doe</p>
+            <p className="text-zinc-400 text-xs">john@example.com</p>
+          </div>
+
+          <div className="p-2">
+            <Link href="/" onClick={() => setIsModalOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors group">
+              <Home size={16} className="text-zinc-400 group-hover:text-red-600" />
+              <span>Home Page</span>
+            </Link>
+            <Link href="/dashboard/settings" onClick={() => setIsModalOpen(false)} className="flex items-center gap-3 px-3 py-2 text-sm text-zinc-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors group">
+              <User size={16} className="text-zinc-400 group-hover:text-red-600" />
+              <span>My Profile</span>
+            </Link>
+          </div>
+
+          <div className="p-2 border-t border-zinc-100 bg-zinc-50/50">
+            <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-100 rounded-lg transition-colors font-medium">
+              <LogOut size={16} />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </header>
   );
 }
@@ -164,13 +208,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-50">
-      {/* Desktop Sidebar with Tailwind Transition */}
       <div className={`hidden lg:block flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden
         ${collapsed ? "w-[72px]" : "w-[256px]"}`}>
         <Sidebar collapsed={collapsed} userRole={userRole} />
       </div>
 
-      {/* Mobile Sidebar (Drawer) */}
       <div className={`lg:hidden fixed inset-0 z-50 transition-all duration-300 ${mobileOpen ? "visible" : "invisible"}`}>
         <div className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${mobileOpen ? "opacity-100" : "opacity-0"}`} onClick={() => setMobileOpen(false)} />
         <div className={`absolute left-0 top-0 bottom-0 w-[256px] bg-white transition-transform duration-500 ease-in-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
