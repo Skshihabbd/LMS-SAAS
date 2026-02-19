@@ -1,6 +1,6 @@
-import bcrypt from "bcrypt";
 import { Schema, model, Document, Model } from "mongoose";
 import { IUser } from "./user.interface";
+import { passwordHashPlugin } from "../../shared/passwordHash";
 
 // 1️⃣ Document interface
 export interface IUserDocument extends IUser, Document {}
@@ -20,12 +20,8 @@ const userSchema = new Schema<IUserDocument, UserModel>(
 );
 
 // 3️⃣ Password hash hook
-userSchema.pre<IUserDocument>("save", async function () {
-  // ✅ TypeScript now recognizes isModified because this extends Document
-  if (!this.isModified("password")) return;
+userSchema.plugin(passwordHashPlugin);
 
-  this.password = await bcrypt.hash(this.password, 10);
-});
 
 // 4️⃣ Static method
 userSchema.statics.isUserExistByEmail = async function (email: string) {

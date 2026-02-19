@@ -1,4 +1,3 @@
-// import { Model } from "mongoose";
 
 export interface IUser {
   name: string;
