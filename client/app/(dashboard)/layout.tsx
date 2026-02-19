@@ -2,211 +2,185 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  LayoutDashboard, BookOpen, ClipboardCheck, Users, 
-  PenTool, BarChart3, MessageSquare, Settings, 
-  Menu, Search, Bell, X, LogOut, Home, User
+import {
+  LayoutDashboard, BookOpen, ClipboardCheck, Users,
+  PenTool, BarChart3, MessageSquare, Settings,
+  Bell, X, LogOut, Home, User, ChevronLeft,
+  PanelLeftClose, PanelLeftOpen
 } from "lucide-react";
 
-// ─── Types ───
+// ─── Types ───────────────────────────────────────────────────────────────────
 type Role = "admin" | "teacher" | "student";
+
 interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
   roles: Role[];
+  badge?: number;
 }
 
-// ─── Menu Configuration ───
+// ─── Menu Configuration ──────────────────────────────────────────────────────
 const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["admin", "teacher", "student"] },
-  { label: "Courses", href: "/dashboard/courses", icon: BookOpen, roles: ["admin", "teacher", "student"] },
-  { label: "Quizzes", href: "/quiz", icon: ClipboardCheck, roles: ["admin", "teacher", "student"] },
-  { label: "Students", href: "/dashboard/students", icon: Users, roles: ["admin", "teacher"] },
-  { label: "Assignments", href: "/dashboard/assignments", icon: PenTool, roles: ["teacher", "student"] },
-  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3, roles: ["admin"] },
-  { label: "Messages", href: "/dashboard/messages", icon: MessageSquare, roles: ["admin", "teacher", "student"] },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings, roles: ["admin", "teacher", "student"] },
+  { label: "Dashboard",   href: "/dashboard",             icon: LayoutDashboard, roles: ["admin", "teacher", "student"] },
+  { label: "Courses",     href: "/dashboard/courses",     icon: BookOpen,        roles: ["admin", "teacher", "student"] },
+  { label: "Quizzes",     href: "/quiz",                  icon: ClipboardCheck,  roles: ["admin", "teacher", "student"], badge: 3 },
+  { label: "Students",    href: "/dashboard/students",    icon: Users,           roles: ["admin", "teacher"] },
+  { label: "Assignments", href: "/dashboard/assignments", icon: PenTool,         roles: ["teacher", "student"] },
+  { label: "Analytics",   href: "/dashboard/analytics",   icon: BarChart3,       roles: ["admin"] },
+  { label: "Messages",    href: "/dashboard/messages",    icon: MessageSquare,   roles: ["admin", "teacher", "student"], badge: 5 },
+  { label: "Settings",    href: "/dashboard/settings",    icon: Settings,        roles: ["admin", "teacher", "student"] },
 ];
 
-// ─── Sidebar Component ───
-function Sidebar({ collapsed, userRole, onClose, isMobile = false }: { collapsed: boolean, userRole: Role, onClose?: () => void, isMobile?: boolean }) {
+const MAIN_NAV  = NAV_ITEMS.slice(0, 6);
+const ACCT_NAV  = NAV_ITEMS.slice(6);
+
+// ─── Sidebar Component ────────────────────────────────────────────────────────
+function Sidebar({ collapsed, userRole, onClose, isMobile = false }: { 
+  collapsed: boolean; userRole: Role; onClose?: () => void; isMobile?: boolean; 
+}) {
   const pathname = usePathname();
-  const filteredMenu = NAV_ITEMS.filter((item) => item.roles.includes(userRole));
+  const filteredMain = MAIN_NAV.filter((i) => i.roles.includes(userRole));
+  const filteredAcct = ACCT_NAV.filter((i) => i.roles.includes(userRole));
+  const isWide = !collapsed || isMobile;
+
+  const NavLink = ({ item }: { item: NavItem }) => {
+    const isActive = pathname === item.href;
+    const Icon = item.icon;
+    return (
+      <Link
+        href={item.href}
+        onClick={isMobile ? onClose : undefined}
+        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 group
+          ${isActive 
+            ? "bg-red-600 text-white shadow-md shadow-red-200" 
+            : "text-zinc-600 hover:bg-red-50 hover:text-red-700"}
+          ${!isWide ? "justify-center" : ""}`}
+      >
+        <Icon size={18} className="flex-shrink-0" />
+        
+        {/* Label and Badge Container - smooth fade */}
+        <div className={`flex items-center flex-1 transition-all duration-300 overflow-hidden ${isWide ? "opacity-100 max-w-full" : "opacity-0 max-w-0"}`}>
+          <span className="flex-1 truncate ml-1">{item.label}</span>
+          {item.badge && (
+            <span className={`text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none ml-2
+              ${isActive ? "bg-white/30 text-white" : "bg-red-600 text-white"}`}>
+              {item.badge}
+            </span>
+          )}
+        </div>
+
+        {/* Tooltip for Collapsed Mode */}
+        {!isWide && (
+          <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+            {item.label}
+          </span>
+        )}
+      </Link>
+    );
+  };
 
   return (
-    <aside className={`flex flex-col h-full bg-slate-900 text-slate-300 ${collapsed && !isMobile ? "w-[72px]" : "w-64"}`}>
-      <div className="flex items-center justify-between px-4 h-16 border-b border-slate-800">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0 text-white">
-            <BookOpen size={18} />
+    <aside className="flex flex-col h-full bg-white border-r border-zinc-200 overflow-hidden w-full">
+      {/* ── Logo ── */}
+      <div className={`flex items-center h-16 border-b border-zinc-100 flex-shrink-0 px-4 transition-all duration-300
+        ${isWide ? "gap-3 justify-between" : "justify-center"}`}>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center flex-shrink-0 shadow-md">
+            <BookOpen size={16} className="text-white" />
           </div>
-          {(!collapsed || isMobile) && <span className="text-white font-bold text-lg">EduSphere</span>}
+          <div className={`transition-all duration-300 overflow-hidden ${isWide ? "opacity-100 max-w-full" : "opacity-0 max-w-0"}`}>
+            <span className="text-zinc-900 font-extrabold text-base tracking-tight block whitespace-nowrap">EduSphere</span>
+            <span className="text-zinc-400 text-[10px] leading-none block whitespace-nowrap">Learning Platform</span>
+          </div>
         </div>
         {isMobile && (
-          <button onClick={onClose} className="p-1 hover:bg-slate-800 rounded-md">
-            <X size={20} />
-          </button>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-zinc-100 text-zinc-400"><X size={18} /></button>
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-        {filteredMenu.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={isMobile ? onClose : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group relative
-                ${isActive ? "bg-indigo-600 text-white" : "hover:bg-slate-800 hover:text-white"}
-                ${collapsed && !isMobile ? "justify-center" : ""}
-              `}
-            >
-              <Icon size={20} />
-              {(!collapsed || isMobile) && <span>{item.label}</span>}
-            </Link>
-          );
-        })}
+      {/* ── Navigation ── */}
+      <nav className="flex-1 overflow-y-auto py-4 px-2 flex flex-col gap-0.5">
+        <p className={`text-[10px] font-bold uppercase tracking-widest text-zinc-400 px-3 mb-1.5 transition-opacity duration-300 ${isWide ? "opacity-100" : "opacity-0"}`}>
+          Main
+        </p>
+        {filteredMain.map((item) => <NavLink key={item.href} item={item} />)}
+        <div className="my-3 border-t border-zinc-100 mx-1" />
+        {filteredAcct.map((item) => <NavLink key={item.href} item={item} />)}
       </nav>
+
+      {/* ── User Footer ── */}
+      <div className="flex-shrink-0 border-t border-zinc-100 p-3">
+        <div className={`flex items-center gap-3 rounded-xl p-2 hover:bg-zinc-50 cursor-pointer transition-all ${!isWide ? "justify-center" : ""}`}>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">JD</div>
+          <div className={`transition-all duration-300 overflow-hidden ${isWide ? "opacity-100 max-w-full" : "opacity-0 max-w-0"}`}>
+            <p className="text-zinc-900 text-sm font-semibold truncate">John Doe</p>
+            <p className="text-zinc-400 text-xs capitalize truncate">{userRole}</p>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 }
 
-// ─── Topbar Component ───
-function Topbar({ onOpenMobile, onToggleDesktop, userRole }: { onOpenMobile: () => void, onToggleDesktop: () => void, userRole: Role }) {
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsProfileOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+// ─── Topbar Component ─────────────────────────────────────────────────────────
+function Topbar({ collapsed, onOpenMobile, onToggleDesktop, userRole }: { 
+  collapsed: boolean; onOpenMobile: () => void; onToggleDesktop: () => void; userRole: Role;
+}) {
+  const pathname = usePathname();
+  const pageTitle = NAV_ITEMS.find((n) => n.href === pathname)?.label ?? "Dashboard";
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center px-4 justify-between sticky top-0 z-20">
-      <div className="flex items-center gap-3 flex-1">
-        <button onClick={onOpenMobile} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-lg">
-          <Menu size={20} />
-        </button>
-        <button onClick={onToggleDesktop} className="hidden lg:block p-2 text-slate-500 hover:bg-slate-100 rounded-lg">
-          <Menu size={20} />
-        </button>
-        
-        {/* Search Bar */}
-        <div className="max-w-md w-full ml-2 hidden sm:flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-1.5 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
-          <Search size={16} className="text-slate-400" />
-          <input type="text" placeholder="Search anything..." className="bg-transparent text-sm w-full outline-none" />
-        </div>
+    <header className="h-16 bg-white border-b border-zinc-200 flex items-center px-4 gap-3 sticky top-0 z-20">
+      <button onClick={onOpenMobile} className="lg:hidden p-2 rounded-lg text-zinc-500 hover:bg-zinc-100"><PanelLeftOpen size={20} /></button>
+      
+      <button onClick={onToggleDesktop} className="hidden lg:flex items-center justify-center w-9 h-9 rounded-xl border border-zinc-200 bg-white text-zinc-500 hover:bg-red-600 hover:text-white transition-all duration-300">
+        {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+      </button>
+
+      <div className="flex items-center gap-2 text-sm ml-2">
+        <span className="text-zinc-400 hidden sm:inline">EduSphere</span>
+        <span className="text-zinc-300 hidden sm:inline">/</span>
+        <span className="text-zinc-900 font-semibold">{pageTitle}</span>
       </div>
 
-      <div className="flex items-center gap-3">
-        <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-full relative">
-          <Bell size={20} />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-        </button>
+      <div className="flex-1" />
 
-        {/* User Profile Dropdown */}
-        <div className="relative" ref={dropdownRef}>
-          <button 
-            onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-2 p-1 hover:bg-slate-100 rounded-full transition-all"
-          >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white text-xs font-bold">
-              JD
-            </div>
-          </button>
+      <button className="relative p-2 rounded-xl text-zinc-500 hover:bg-zinc-100 hover:text-red-600 transition-colors">
+        <Bell size={19} />
+        <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border-2 border-white" />
+      </button>
 
-          <AnimatePresence>
-            {isProfileOpen && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 overflow-hidden z-50"
-              >
-                <div className="px-3 py-3 border-b border-slate-50">
-                  <p className="text-sm font-bold text-slate-800">John Doe</p>
-                  <p className="text-xs text-slate-500 capitalize">{userRole} Account</p>
-                </div>
-                <div className="py-2">
-                  <Link href="/" className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
-                    <Home size={16} /> Home Page
-                  </Link>
-                  <Link href="/dashboard/settings" className="flex items-center gap-3 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
-                    <User size={16} /> My Profile
-                  </Link>
-                </div>
-                <div className="pt-2 border-t border-slate-50">
-                  <button className="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                    <LogOut size={16} /> Logout
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+      <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-xs font-bold cursor-pointer">JD</div>
     </header>
   );
 }
 
-// ─── Main Dashboard Layout ───
+// ─── Main Dashboard Layout ────────────────────────────────────────────────────
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [userRole] = useState<Role>("student"); // Contoh role backend
+  const [userRole] = useState<Role>("student");
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
-      {/* Sidebar Desktop */}
-      <div className="hidden lg:flex flex-shrink-0 border-r border-slate-800 bg-slate-900">
+    <div className="flex h-screen overflow-hidden bg-zinc-50">
+      {/* Desktop Sidebar with Tailwind Transition */}
+      <div className={`hidden lg:block flex-shrink-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-hidden
+        ${collapsed ? "w-[72px]" : "w-[256px]"}`}>
         <Sidebar collapsed={collapsed} userRole={userRole} />
       </div>
 
-      {/* Sidebar Mobile with Framer Motion Animation */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMobileOpen(false)}
-              className="lg:hidden fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm"
-            />
-            {/* Sidebar Content */}
-            <motion.div 
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 z-50 shadow-2xl"
-            >
-              <Sidebar collapsed={false} userRole={userRole} onClose={() => setMobileOpen(false)} isMobile />
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Mobile Sidebar (Drawer) */}
+      <div className={`lg:hidden fixed inset-0 z-50 transition-all duration-300 ${mobileOpen ? "visible" : "invisible"}`}>
+        <div className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${mobileOpen ? "opacity-100" : "opacity-0"}`} onClick={() => setMobileOpen(false)} />
+        <div className={`absolute left-0 top-0 bottom-0 w-[256px] bg-white transition-transform duration-500 ease-in-out ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+          <Sidebar collapsed={false} userRole={userRole} onClose={() => setMobileOpen(false)} isMobile />
+        </div>
+      </div>
 
       <div className="flex flex-col flex-1 overflow-hidden">
-        <Topbar 
-          onOpenMobile={() => setMobileOpen(true)} 
-          onToggleDesktop={() => setCollapsed(!collapsed)}
-          userRole={userRole}
-        />
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
-          {children}
-        </main>
+        <Topbar collapsed={collapsed} onOpenMobile={() => setMobileOpen(true)} onToggleDesktop={() => setCollapsed(!collapsed)} userRole={userRole} />
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
     </div>
   );
