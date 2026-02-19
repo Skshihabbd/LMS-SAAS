@@ -16,16 +16,24 @@ const userSchema = new Schema<IUserDocument, UserModel>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, minlength: 6, select: false }
   },
+  
   { timestamps: true }
 );
 
+
+userSchema.set("toJSON", {
+  transform: function (doc, ret) {
+    delete ret.password;
+    return ret;
+  },
+});
 // 3️⃣ Password hash hook
 userSchema.plugin(passwordHashPlugin);
 
 
 // 4️⃣ Static method
 userSchema.statics.isUserExistByEmail = async function (email: string) {
-  return await this.findOne({ email }).select("+password");
+  return await this.findOne({ email });
 };
 
 export const User = model<IUserDocument, UserModel>("User", userSchema);
