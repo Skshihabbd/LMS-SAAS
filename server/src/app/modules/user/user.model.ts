@@ -3,7 +3,7 @@ import { IUser } from "./user.interface";
 import { passwordHashPlugin } from "../../shared/passwordHash";
 
 // 1️⃣ Document interface
-export interface IUserDocument extends IUser, Document {}
+export interface IUserDocument extends IUser, Document { }
 
 // 2️⃣ Model interface
 export interface UserModel extends Model<IUserDocument> {
@@ -16,7 +16,7 @@ const userSchema = new Schema<IUserDocument, UserModel>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, minlength: 6, select: false }
   },
-  
+
   { timestamps: true }
 );
 
