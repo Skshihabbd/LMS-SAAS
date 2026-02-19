@@ -1,9 +1,10 @@
 import bcrypt from "bcrypt";
 import { Schema, model, Document, Model } from "mongoose";
 import { IUser } from "./user.interface";
+import { USER_ROLE } from "../../interfaces/Role";
 
 // 1️⃣ Document interface
-export interface IUserDocument extends IUser, Document {}
+export interface IUserDocument extends IUser, Document { }
 
 // 2️⃣ Model interface
 export interface UserModel extends Model<IUserDocument> {
@@ -14,7 +15,8 @@ const userSchema = new Schema<IUserDocument, UserModel>(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6, select: false }
+    password: { type: String, required: true, minlength: 6, select: false },
+    role: { type: String, enum: Object.values(USER_ROLE), default: USER_ROLE.STUDENT, required: true, }
   },
   { timestamps: true }
 );

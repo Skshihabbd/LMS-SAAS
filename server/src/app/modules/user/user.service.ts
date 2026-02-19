@@ -18,6 +18,7 @@ const createUser = async (payload: IUser) => {
 
 
 
+
 export const userService = {
     createUser
 }

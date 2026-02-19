@@ -8,6 +8,8 @@ interface envConfig {
     DATABASE_URL: string;
     FRONTEND_URL: string;
     JWT_SECRET: string;
+    ADMIN_EMAIL: string;
+    ADMIN_PASS: string;
 };
 
 const loadConfig = (): envConfig => {
@@ -16,7 +18,9 @@ const loadConfig = (): envConfig => {
         "NODE_ENV",
         "DATABASE_URL",
         "FRONTEND_URL",
-        "JWT_SECRET"
+        "JWT_SECRET",
+        "ADMIN_EMAIL",
+        "ADMIN_PASS"
     ];
 
     requireVariables.forEach((variable) => {
@@ -31,6 +35,8 @@ const loadConfig = (): envConfig => {
         DATABASE_URL: process.env.DATABASE_URL as string,
         FRONTEND_URL: process.env.FRONTEND_URL as string,
         JWT_SECRET: process.env.JWT_SECRET as string,
+        ADMIN_EMAIL: process.env.ADMIN_EMAIL as string,
+        ADMIN_PASS: process.env.ADMIN_PASS as string,
     };
 };
 
