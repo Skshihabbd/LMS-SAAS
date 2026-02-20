@@ -10,6 +10,9 @@ interface envConfig {
     JWT_SECRET: string;
     ADMIN_EMAIL: string;
     ADMIN_PASS: string;
+    GOOGLE_CLIENT_ID: string;
+    GOOGLE_CLIENT_SECRET: string;
+    GOOGLE_CALLBACK_URL: string;
 };
 
 const loadConfig = (): envConfig => {
@@ -20,7 +23,10 @@ const loadConfig = (): envConfig => {
         "FRONTEND_URL",
         "JWT_SECRET",
         "ADMIN_EMAIL",
-        "ADMIN_PASS"
+        "ADMIN_PASS",
+        "GOOGLE_CLIENT_ID",
+        "GOOGLE_CLIENT_SECRET",
+        "GOOGLE_CALLBACK_URL"
     ];
 
     requireVariables.forEach((variable) => {
@@ -37,6 +43,9 @@ const loadConfig = (): envConfig => {
         JWT_SECRET: process.env.JWT_SECRET as string,
         ADMIN_EMAIL: process.env.ADMIN_EMAIL as string,
         ADMIN_PASS: process.env.ADMIN_PASS as string,
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
+        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,
+        GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string
     };
 };
 

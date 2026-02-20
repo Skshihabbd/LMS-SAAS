@@ -1,12 +1,6 @@
-
 export interface IUser {
   name: string;
   email: string;
   password?: string;
+  role?: "student" | "teacher" | "admin"; // ✅ role optional, default later
 }
-// export interface IUserDocument extends IUser, Document {}
-
-
-// export interface UserModel extends Model<IUserDocument> {
-//   isUserExistByEmail(email: string): Promise<IUserDocument | null>;
-// }
