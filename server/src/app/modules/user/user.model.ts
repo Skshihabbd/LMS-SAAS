@@ -14,12 +14,18 @@ const userSchema = new Schema<IUserDocument, UserModel>(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6, select: false }
+    password: { type: String, required: false, minlength: 6, select: true },
+    role: {
+      type: String,
+      enum: ["student", "teacher", "admin"],
+      default: "student", // ✅ default role
+    },
+
   },
+  
 
   { timestamps: true }
 );
-
 
 userSchema.set("toJSON", {
   transform: function (doc, ret) {
@@ -27,6 +33,7 @@ userSchema.set("toJSON", {
     return ret;
   },
 });
+
 // 3️⃣ Password hash hook
 userSchema.plugin(passwordHashPlugin);
 
